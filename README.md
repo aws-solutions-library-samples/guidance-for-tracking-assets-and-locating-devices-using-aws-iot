@@ -91,20 +91,40 @@ This guidance supports the following regions:
 **2. Install Visualization prerequisites**
 
 1. Navigate to the `amazon-location-samples-react/tracking-data-streaming` and run `npm install` to install required packages.
-2. 
+2. Run `chmod +x deploy_cloudformation.sh` to mark it as an executable file. 
+3. Ensure your AWS Region is set by running `export AWS_REGION=<your region>`
+3. Run `./deploy_cloudformation.sh`. This will install the Amazon Location Service Tracker and Map resources, Cognito authentication configurations, and a Kinesis stream designed to capture location updates.
 
-## Deployment Validation
+**3. Configure Visualization**
 
-<Provide steps to validate a successful deployment, such as terminal output, verifying that the resource is created, status of the CloudFormation template, etc.>
+1. Navigate to `guidance-for-asset-tracking-using-aws-iot-core-and-amazon-location-services/amazon-location-samples-react/tracking-data-streaming/src` and open the `configuration.js` file.
+2. Navigate to the CloudFromation console and locate the `TrackingAndGeofencingSample` stack, and select the `Outputs` tab. Copy the values of `TrackingAndGeofencingSampleReadOnlyCognitoPoolId`, and `TrackingAndGeofencingSampleWriteOnlyCognitoPoolId` for the configuration file.
+3. Change the values for `READ_ONLY_IDENTITY_POOL_ID`, `WRITE_ONLY_IDENTITY_POOL_ID`, and `REGION` with the values from CloudFormation.
+4. Save the `configuration.js` file and run `npm start` to start the local web server.
 
+![Map View](images/mapview.png)
 
-**Examples:**
+**4. Configure IoT Resources Stack**
+1. Navigate to `guidance-for-asset-tracking-using-aws-iot-core-and-amazon-location-services/cf` and enter the following command `aws cloudformation create-stack --stack-name TrackingAndGeofencingIoTResources --template-body file://iotResources.yml --capabilities CAPABILITY_IAM` Optionally, you can create the stack using the CloudFormation Console. This will deploy the IoT Core Rule, Lambda Function, and associated IAM Permissions to ingest messages from IoT Core into Amazon Location Service. 
 
-* Open CloudFormation console and verify the status of the template with the name starting with xxxxxx.
-* If deployment is successful, you should see an active database instance with the name starting with <xxxxx> in        the RDS console.
-*  Run the following CLI command to validate the deployment: ```aws cloudformation describe xxxxxxxxxxxxx```
+**5. (Optional) Deploy Analytics Stack**
 
+If you would like to include the analytics stack in the deployment, follow these steps.
 
+1. Navigate to `guidance-for-asset-tracking-using-aws-iot-core-and-amazon-location-services/cf` and enter the following command `aws cloudformation create-stack --stack-name TrackingAndGeofencingAnalyticsResources --template-body file://analyticsResources.yml --capabilities CAPABILITY_IAM ` Optionally, you can create the stack using the CloudFormation Console. This will deploy an S3 Bucket, Data Firehose, EventBridge rule, and associated permissions to capture Location Updates from Amazon Location Service and place them in an S3 bucket for long-term storage and analytics.
+
+## Deployment Validation - IoT and Analytics Resources
+
+1a. Navigate to the AWS CloudFormation Console, and verify that the stacks 
+`TrackingAndGeofencingIoTResources` and (optionally) `TrackingAndGeofencingAnalyticsResources` deployed successfully and are in `CREATE_COMPLETE` status 
+
+OR
+
+1b. Run the following commands `aws cloudformation describe-stacks --stack-name TrackingAndGeofencingAnalyticsResources --query Stacks[0].StackStatus` and `aws cloudformation describe-stacks --stack-name TrackingAndGeofencingIoTResources --query Stacks[0].StackStatus` and verify they are both in `"CREATE_COMPLETE"` status.
+
+## Deployment Validation - Visualization Resources
+1. In your terminal, ensure `npm start` is still running.
+2. Navigate to `localhost:8080` in your browser, or **Preview running application** if using AWS Cloud9 and verify the map is loading.
 
 ## Running the Guidance
 
@@ -126,8 +146,13 @@ Provide suggestions and recommendations about how customers can modify the param
 
 ## Cleanup (required)
 
-- Include detailed instructions, commands, and console actions to delete the deployed Guidance.
-- If the Guidance requires manual deletion of resources, such as the content of an S3 bucket, please specify.
+To cleanup, delete the following stacks in this order:
+1. TrackingAndGeofencingIoTResources
+2. TrackingAndGeofencingAnalyticsResources (empty the bucket before attempting deletion)
+3. TrackingAndGeofencingSample
+4. serverlessrepo-kinesis-stream-device-data-to-location-tracker-app-stack
+5. TrackingAndGeofencingSampleKinesisStack
+6. Cloud9 instance
 
 
 
