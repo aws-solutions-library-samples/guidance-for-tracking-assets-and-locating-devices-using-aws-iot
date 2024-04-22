@@ -1,4 +1,4 @@
-# Guidance Title (required)
+# Guidance for Tracking Assets & Locating Devices Using AWS IoT
 
 The Guidance title should be consistent with the title established first in Alchemy.
 
@@ -7,11 +7,8 @@ The Guidance title should be consistent with the title established first in Alch
 This title correlates exactly to the Guidance it’s linked to, including its corresponding sample code repository. 
 
 
-## Table of Content (required)
+## Table of Contents
 
-List the top-level sections of the README template, along with a hyperlink to the specific section.
-
-### Required
 
 1. [Overview](#overview-required)
     - [Cost](#cost)
@@ -22,106 +19,81 @@ List the top-level sections of the README template, along with a hyperlink to th
 5. [Running the Guidance](#running-the-guidance-required)
 6. [Next Steps](#next-steps-required)
 7. [Cleanup](#cleanup-required)
-
-***Optional***
-
 8. [FAQ, known issues, additional considerations, and limitations](#faq-known-issues-additional-considerations-and-limitations-optional)
 9. [Revisions](#revisions-optional)
 10. [Notices](#notices-optional)
-11. [Authors](#authors-optional)
+
 
 ## Overview (required)
 
-1. Provide a brief overview explaining the what, why, or how of your Guidance. You can answer any one of the following to help you write this:
+This Guidance demonstrates how to stream location data from your assets and devices with Internet of Things (IoT) sensors, helping you record and monitor the movement of your assets through a centralized management system. IoT-enabled devices, such as a smart bicycle, a delivery truck, or a shipping container, can be configured with AWS IoT Core, a fully managed service that lets you connect billions of IoT devices and route trillions of message topics to AWS. These message topics can then interface with a host of other AWS services, such as Amazon Location Service, which helps you add location data to your message topics. Other AWS services can be configured with this Guidance to alert you for geofencing events, allow you to receive location updates, and help you visualize asset positions from an interactive web application.
 
-    - **Why did you build this Guidance?**
-    - **What problem does this Guidance solve?**
-
-2. Include the architecture diagram image, as well as the steps explaining the high-level overview and flow of the architecture. 
-    - To add a screenshot, create an ‘assets/images’ folder in your repository and upload your screenshot to it. Then, using the relative file path, add it to your README. 
+The demo contained in this repository configures the resources needed to send and visualize location updates via AWS IoT Core. An optional template also defines a basic analytics setup where location updates are stored in Amazon S3 for future analysis.
 
 ### Cost
 
-This section is for a high-level cost estimate. Think of a likely straightforward scenario with reasonable assumptions based on the problem the Guidance is trying to solve. If applicable, provide an in-depth cost breakdown table in this section.
+You are responsible for the cost of the AWS services used while running this Guidance. As of April 2024, the cost for running this Guidance with the default settings in the US East (N. Virginia) region is approximately $94.80 per month for processing 1 million location updates.
 
-Start this section with the following boilerplate text:
+The majority of the cost is location writes and retrievals from Amazon Location Service. Depending on how updates are [filtered](https://aws.amazon.com/blogs/mobile/amazon-location-service-enables-position-filtering-to-reduce-position-jitter-and-cost-of-tracking/) the cost to retrieve location updats may be less.
 
-_You are responsible for the cost of the AWS services used while running this Guidance. As of <month> <year>, the cost for running this Guidance with the default settings in the <Default AWS Region (Most likely will be US East (N. Virginia)) > is approximately $<n.nn> per month for processing ( <nnnnn> records )._
+## Prerequisites
+### Operating System
 
-Replace this amount with the approximate cost for running your Guidance in the default Region. This estimate should be per month and for processing/serving resonable number of requests/entities.
+In order to visualize device positions and geofences, the application requires a local web server to be running. This deployment will assume the usage of Amazon Linux 2023 using AWS Cloud9. Running these steps on other operating systems may require additional steps. Additionally, the AWS Command Line Interface (CLI) will be required to deploy CloudFormation templates, and Node.js for running the visualization.
 
+### AWS Account Requirements
 
-## Prerequisites (required)
-
-### Operating System (required)
-
-- Talk about the base Operating System (OS) and environment that can be used to run or deploy this Guidance, such as *Mac, Linux, or Windows*. Include all installable packages or modules required for the deployment. 
-- By default, assume Amazon Linux 2/Amazon Linux 2023 AMI as the base environment. All packages that are not available by default in AMI must be listed out.  Include the specific version number of the package or module.
-
-**Example:**
-“These deployment instructions are optimized to best work on **<Amazon Linux 2 AMI>**.  Deployment in another OS may require additional steps.”
-
-- Include install commands for packages, if applicable.
-
-
-### Third-party tools (If applicable)
-
-*List any installable third-party tools required for deployment.*
-
-
-### AWS account requirements (If applicable)
-
-*List out pre-requisites required on the AWS account if applicable, this includes enabling AWS regions, requiring ACM certificate.*
-
-**Example:** “This deployment requires you have public ACM certificate available in your AWS account”
+This deployment requires access to the following resources:
 
 **Example resources:**
-- ACM certificate 
-- DNS record
-- S3 bucket
-- VPC
-- IAM role with specific permissions
-- Enabling a Region or service etc.
+- Amazon Location Service
+- Amazon EventBridge
+- Amazon Data Firehose
+- AWS Lambda
+- Amazon S3
+- Amazon SNS
+- AWS IoT Core
+- Amazon Cognito
+- IAM roles with specific permissions
+- Access to a Region that suppors this deployment [Default: US East (N. Virginia)]
+
+### Service limits
+
+Amazon Location Service supports a default limit of 50 Device Position Updates per second. If you anticipate updating at a higher rate, this limit can be increased via the [quota increase process](https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html)
+
+### Supported Regions
+
+This guidance supports the following regions:
+
+- US East (Ohio) - us-east-2
+- US East (N Virgina) - us-east-1
+- US West (Oregon) - us-west-2
+- Asia Pacific (Mumbai) - ap-south-1
+- Asia Pacific (Singapore) - ap-southeast-1
+- Asia Pacific (Sydney) - ap-southeast-2
+- Asia Pacific (Tokyo) - ap-northeast-1
+- Canada (Central) - ca-central-1
+- Europe (Frankfurt) - eu-central-1
+- Europe (Ireland) - eu-west-1
+- Europe (London) - eu-west-2
+- Europe (Stockholm) - eu-north-1
+- South America (Sao Paulo) - sa-east-1
+- AWS GovCloud (US-West) - us-gov-west-1
 
 
-### aws cdk bootstrap (if sample code has aws-cdk)
+## Deployment Steps
+**1. Clone guidance and visualization repositories**
 
-<If using aws-cdk, include steps for account bootstrap for new cdk users.>
-
-**Example blurb:** “This Guidance uses aws-cdk. If you are using aws-cdk for first time, please perform the below bootstrapping....”
-
-### Service limits  (if applicable)
-
-<Talk about any critical service limits that affect the regular functioning of the Guidance. If the Guidance requires service limit increase, include the service name, limit name and link to the service quotas page.>
-
-### Supported Regions (if applicable)
-
-<If the Guidance is built for specific AWS Regions, or if the services used in the Guidance do not support all Regions, please specify the Region this Guidance is best suited for>
+1. In a terminal, enter `git clone https://github.com/aws-solutions-library-samples/guidance-for-asset-tracking-using-aws-iot-core-and-amazon-location-services.git --recurse-submodules`
+2. Navigate to `guidance-for-asset-tracking-using-aws-iot-core-and-amazon-location-services`
 
 
-## Deployment Steps (required)
+**2. Install Visualization prerequisites**
 
-Deployment steps must be numbered, comprehensive, and usable to customers at any level of AWS expertise. The steps must include the precise commands to run, and describe the action it performs.
+1. Navigate to the `amazon-location-samples-react/tracking-data-streaming` and run `npm install` to install required packages.
+2. 
 
-* All steps must be numbered.
-* If the step requires manual actions from the AWS console, include a screenshot if possible.
-* The steps must start with the following command to clone the repo. ```git clone xxxxxxx```
-* If applicable, provide instructions to create the Python virtual environment, and installing the packages using ```requirement.txt```.
-* If applicable, provide instructions to capture the deployed resource ARN or ID using the CLI command (recommended), or console action.
-
- 
-**Example:**
-
-1. Clone the repo using command ```git clone xxxxxxxxxx```
-2. cd to the repo folder ```cd <repo-name>```
-3. Install packages in requirements using command ```pip install requirement.txt```
-4. Edit content of **file-name** and replace **s3-bucket** with the bucket name in your account.
-5. Run this command to deploy the stack ```cdk deploy``` 
-6. Capture the domain name created by running this CLI command ```aws apigateway ............```
-
-
-
-## Deployment Validation  (required)
+## Deployment Validation
 
 <Provide steps to validate a successful deployment, such as terminal output, verifying that the resource is created, status of the CloudFormation template, etc.>
 
@@ -134,7 +106,7 @@ Deployment steps must be numbered, comprehensive, and usable to customers at any
 
 
 
-## Running the Guidance (required)
+## Running the Guidance
 
 <Provide instructions to run the Guidance with the sample data or input provided, and interpret the output received.> 
 
@@ -164,39 +136,12 @@ Provide suggestions and recommendations about how customers can modify the param
 
 **Known issues (optional)**
 
-<If there are common known issues, or errors that can occur during the Guidance deployment, describe the issue and resolution steps here>
-
-
-**Additional considerations (if applicable)**
-
-<Include considerations the customer must know while using the Guidance, such as anti-patterns, or billing considerations.>
-
-**Examples:**
-
-- “This Guidance creates a public AWS bucket required for the use-case.”
-- “This Guidance created an Amazon SageMaker notebook that is billed per hour irrespective of usage.”
-- “This Guidance creates unauthenticated public API endpoints.”
-
-
-Provide a link to the *GitHub issues page* for users to provide feedback.
-
-
-**Example:** *“For any feedback, questions, or suggestions, please use the issues tab under this repo.”*
 
 ## Revisions (optional)
 
-Document all notable changes to this project.
+- First Release
 
-Consider formatting this section based on Keep a Changelog, and adhering to Semantic Versioning.
+## Notices
 
-## Notices (optional)
-
-Include a legal disclaimer
-
-**Example:**
 *Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided “as is” without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.*
 
-
-## Authors (optional)
-
-Name of code contributors
