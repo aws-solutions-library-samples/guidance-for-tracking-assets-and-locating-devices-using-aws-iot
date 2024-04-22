@@ -1,30 +1,26 @@
 # Guidance for Tracking Assets & Locating Devices Using AWS IoT
 
-The Guidance title should be consistent with the title established first in Alchemy.
-
-**Example:** *Guidance for Product Substitutions on AWS*
-
-This title correlates exactly to the Guidance it’s linked to, including its corresponding sample code repository. 
-
 
 ## Table of Contents
 
 
-1. [Overview](#overview-required)
+1. [Overview](#overview)
     - [Cost](#cost)
-2. [Prerequisites](#prerequisites-required)
-    - [Operating System](#operating-system-required)
-3. [Deployment Steps](#deployment-steps-required)
-4. [Deployment Validation](#deployment-validation-required)
-5. [Running the Guidance](#running-the-guidance-required)
-6. [Next Steps](#next-steps-required)
-7. [Cleanup](#cleanup-required)
-8. [FAQ, known issues, additional considerations, and limitations](#faq-known-issues-additional-considerations-and-limitations-optional)
-9. [Revisions](#revisions-optional)
-10. [Notices](#notices-optional)
+2. [Prerequisites](#prerequisites)
+    - [Operating System](#operating-system)
+    - [AWS Account Requirements](#aws-account-requirements)
+    - [Service Limits](#service-limits)
+    - [Supported Regions](#supported-regions)
+3. [Deployment Steps](#deployment-steps)
+4. [Deployment Validation](#deployment-validation)
+5. [Running the Guidance](#running-the-guidance)
+6. [Next Steps](#next-steps)
+7. [Cleanup](#cleanup)
+9. [Revisions](#revisions)
+10. [Notices](#notices)
 
 
-## Overview (required)
+## Overview
 
 This Guidance demonstrates how to stream location data from your assets and devices with Internet of Things (IoT) sensors, helping you record and monitor the movement of your assets through a centralized management system. IoT-enabled devices, such as a smart bicycle, a delivery truck, or a shipping container, can be configured with AWS IoT Core, a fully managed service that lets you connect billions of IoT devices and route trillions of message topics to AWS. These message topics can then interface with a host of other AWS services, such as Amazon Location Service, which helps you add location data to your message topics. Other AWS services can be configured with this Guidance to alert you for geofencing events, allow you to receive location updates, and help you visualize asset positions from an interactive web application.
 
@@ -39,7 +35,7 @@ The majority of the cost is location writes and retrievals from Amazon Location 
 ## Prerequisites
 ### Operating System
 
-In order to visualize device positions and geofences, the application requires a local web server to be running. This deployment will assume the usage of Amazon Linux 2023 using AWS Cloud9. Running these steps on other operating systems may require additional steps. Additionally, the AWS Command Line Interface (CLI) will be required to deploy CloudFormation templates, and Node.js for running the visualization.
+In order to visualize device positions and geofences, the application requires a local web server to be running. This deployment will assume the usage of Amazon Linux 2023 using AWS Cloud9. Running these steps on other operating systems may require additional steps. Additionally, the AWS Command Line Interface (CLI) will be required to deploy CloudFormation templates and interact with Amazon Location Service. Node.js is required for running the visualization.
 
 ### AWS Account Requirements
 
@@ -120,7 +116,7 @@ If you would like to include the analytics stack in the deployment, follow these
 
 OR
 
-1b. Run the following commands `aws cloudformation describe-stacks --stack-name TrackingAndGeofencingAnalyticsResources --query Stacks[0].StackStatus` and `aws cloudformation describe-stacks --stack-name TrackingAndGeofencingIoTResources --query Stacks[0].StackStatus` and verify they are both in `"CREATE_COMPLETE"` status.
+1b. Run the following commands `aws cloudformation describe-stacks --stack-name TrackingAndGeofencingIoTResources --query Stacks[0].StackStatus` and optionally `aws cloudformation describe-stacks --stack-name TrackingAndGeofencingAnalyticsResources --query Stacks[0].StackStatus` to verify they are both in `"CREATE_COMPLETE"` status.
 
 ## Deployment Validation - Visualization Resources
 1. In your terminal, ensure `npm start` is still running.
@@ -160,32 +156,26 @@ To validate the Location update was sent from AWS IoT Core to Amazon Location Se
 ```
 
 ### (Optional) Check S3 Bucket for Location Update
-To validate Location Updates are being placed in S3 for long term storage and analytics, navigate to the Amazon S3 console and locate the bucket created as part of the analytics stack. Verify that files are being created in the bucket for each location update.
+To validate Location Updates are being placed in S3 for long term storage and analytics, navigate to the Amazon S3 console and locate the bucket created as part of the analytics stack. Verify that files are being created in the bucket for each location update. Alternatively, use the AWS CLI to list the files in the bucket.
 ![S3 Bucket](/images/s3bucket.png)
-
-
 
 ## Next Steps
 
-Provide suggestions and recommendations about how customers can modify the parameters and the components of the Guidance to further enhance it according to their requirements.
+This guidance provides a base framework from which you can build on top for your Asset Tracking Solution. With this guidance, you can modify certain aspects of this system to be tailored to your environment. This may include the following:
 
+- Customization of data ingestion from other sources such as Kinesis
+- Using Amazon Athena and Quicksight to perform and visualize location data stored on Amazon S3
+- Notifications configured via Amazon Simple Notification Service for Geofence enter/exit events. 
 
 ## Cleanup
 
 To cleanup, delete the following stacks in this order:
 1. TrackingAndGeofencingIoTResources
-2. TrackingAndGeofencingAnalyticsResources (empty the bucket before attempting deletion)
+2. TrackingAndGeofencingAnalyticsResources (empty the analytics bucket before attempting deletion)
 3. TrackingAndGeofencingSample
 4. serverlessrepo-kinesis-stream-device-data-to-location-tracker-app-stack
 5. TrackingAndGeofencingSampleKinesisStack
 6. Cloud9 instance
-
-
-
-## FAQ, known issues, additional considerations, and limitations (optional)
-
-
-**Known issues (optional)**
 
 
 ## Revisions
