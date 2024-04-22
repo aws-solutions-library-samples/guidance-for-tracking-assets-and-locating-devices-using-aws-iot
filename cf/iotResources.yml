@@ -3,7 +3,7 @@ Description: A Template to provision AWS IoT Core Resources for the Amazon Locat
 Parameters:
   TrackerName:
     Type: String
-    Default: ExampleTracker
+    Default: SampleTracker
     Description: Name of the Amazon Location Tracker to use.
 Resources:
   TrackingAndGeofencingSampleIoTLambdaFunctionRole:
@@ -19,6 +19,8 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
       - PolicyName: TrackingAndGeofencingSampleIoTLambdaFunctionPolicy
         PolicyDocument:

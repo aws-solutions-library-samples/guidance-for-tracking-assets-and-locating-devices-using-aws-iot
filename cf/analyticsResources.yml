@@ -3,7 +3,7 @@ Description: A Template to provision AWS Analytics Resources for the Amazon Loca
 Parameters:
   TrackerName:
     Type: String
-    Default: ExampleTracker
+    Default: SampleTracker
     Description: Name of the Amazon Location Tracker to use.
 Resources:
   TrackingAndGeofencingSampleAnalyticsBucket:

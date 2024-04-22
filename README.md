@@ -127,24 +127,50 @@ OR
 2. Navigate to `localhost:8080` in your browser, or **Preview running application** if using AWS Cloud9 and verify the map is loading.
 
 ## Running the Guidance
+To visualize your IoT Devices on the map and (optionally) store location updates in Amazon S3, send a location update via MQTT. Here is how:
 
-<Provide instructions to run the Guidance with the sample data or input provided, and interpret the output received.> 
+### Sending MQTT Messages
+In the AWS Console, navigate to **IoT Core** and then **MQTT test client**. In the **Publish to a topic** tab, enter `location` as the **Topic name** and the following for `Message payload`, setting the `timestamp` as the current epoch time. 
+```json
+{
+  "payload": {
+    "deviceid": "Vehicle-1",
+    "timestamp": 1713812103,
+    "location": { "lat": 47.54372304079714, "long": -122.32275832917712 },
+    "accuracy": { "Horizontal": 20.5 }
+  }
+}
+```
+### Validating Location Update
+To validate the Location update was sent from AWS IoT Core to Amazon Location Service, from your terminal, enter the following command: 
+`aws location get-device-position --tracker-name SampleTracker --device-id Vehicle-1` which should produce output similar to this:
+```json
+{
+    "Accuracy": {
+        "Horizontal": 20.5
+    },
+    "DeviceId": "Vehicle-1",
+    "Position": [
+        -122.32275832917712,
+        47.54372304079714
+    ],
+    "ReceivedTime": "2024-04-22T19:02:48.577000+00:00",
+    "SampleTime": "2024-04-22T19:02:41+00:00"
+}
+```
 
-This section should include:
-
-* Guidance inputs
-* Commands to run
-* Expected output (provide screenshot if possible)
-* Output description
+### (Optional) Check S3 Bucket for Location Update
+To validate Location Updates are being placed in S3 for long term storage and analytics, navigate to the Amazon S3 console and locate the bucket created as part of the analytics stack. Verify that files are being created in the bucket for each location update.
+![S3 Bucket](/images/s3bucket.png)
 
 
 
-## Next Steps (required)
+## Next Steps
 
 Provide suggestions and recommendations about how customers can modify the parameters and the components of the Guidance to further enhance it according to their requirements.
 
 
-## Cleanup (required)
+## Cleanup
 
 To cleanup, delete the following stacks in this order:
 1. TrackingAndGeofencingIoTResources
@@ -162,7 +188,7 @@ To cleanup, delete the following stacks in this order:
 **Known issues (optional)**
 
 
-## Revisions (optional)
+## Revisions
 
 - First Release
 
