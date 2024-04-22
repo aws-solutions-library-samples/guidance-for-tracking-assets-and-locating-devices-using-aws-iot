@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A Template to provision AWS Analytics Resources for the Amazon Location Live Device Tracking and Geofencing sample app.
+Parameters:
+  TrackerName:
+    Type: String
+    Default: SampleTracker
+    Description: Name of the Amazon Location Tracker to use.
+Resources:
+  TrackingAndGeofencingSampleAnalyticsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  TrackingAndGeofencingSampleAnalyticsDeliveryStreamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref 'AWS::AccountId'
+      Policies:
+        - PolicyName: firehose-s3-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:AbortMultipartUpload'
+                  - 's3:GetBucketLocation'
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                  - 's3:ListBucketMultipartUploads'
+                  - 's3:PutObject'
+                Resource:
+                  - !GetAtt TrackingAndGeofencingSampleAnalyticsBucket.Arn
+                  - !Join ['', [!GetAtt TrackingAndGeofencingSampleAnalyticsBucket.Arn, '/*']]
+
+  TrackingAndGeofencingSampleAnalyticsDeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamName: TrackingAndGeofencingSampleAnalyticsDeliveryStream
+      DeliveryStreamType: DirectPut
+      ExtendedS3DestinationConfiguration:
+        BucketARN: !GetAtt TrackingAndGeofencingSampleAnalyticsBucket.Arn
+        BufferingHints:
+          IntervalInSeconds: 60
+          SizeInMBs: 1
+        CompressionFormat: UNCOMPRESSED
+        RoleARN: !GetAtt TrackingAndGeofencingSampleAnalyticsDeliveryStreamRole.Arn
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName: !Join ['-', ['/aws/kinesisfirehose/', 'TrackingAndGeofencingSampleAnalyticsDeliveryStream']]
+          LogStreamName: S3Delivery
+
+  TrackingAndGeofencingSampleAnalyticsEventBridgeRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub events.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: EventBridgeInvokeKinesis
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "firehose:PutRecord"
+                  - "firehose:PutRecords"
+                Resource:
+                  - !GetAtt TrackingAndGeofencingSampleAnalyticsDeliveryStream.Arn
+                  
+  
+  
+  
+  TrackingAndGeofencingSampleAnalyticsEventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: EventBridge Rule for Amazon Location Service Tracker Events
+      EventPattern:
+        source:
+          - aws.geo
+        detail-type:
+          - "Location Device Position Event"
+        detail:
+          TrackerName:
+          - !Ref TrackerName
+      Name: TrackingAndGeofencingSampleAnalyticsEventBridgeRule
+      Targets:
+        -
+          Arn: !GetAtt TrackingAndGeofencingSampleAnalyticsDeliveryStream.Arn
+          RoleArn: !GetAtt TrackingAndGeofencingSampleAnalyticsEventBridgeRole.Arn
+          Id: 1

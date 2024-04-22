@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A Template to provision AWS IoT Core Resources for the Amazon Location Live Device Tracking and Geofencing sample app.
+Parameters:
+  TrackerName:
+    Type: String
+    Default: SampleTracker
+    Description: Name of the Amazon Location Tracker to use.
+Resources:
+  TrackingAndGeofencingSampleIoTLambdaFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: TrackingAndGeofencingSampleIoTLambdaFunctionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - geo:BatchUpdateDevicePosition
+            Resource: !Sub 
+              - 'arn:aws:geo:${AWS::Region}:${AWS::AccountId}:tracker/${TrackerName}'
+              - TrackerName: !Ref TrackerName
+
+  TrackingAndGeofencingSampleIoTLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.12
+      FunctionName: TrackingAndGeofencingSampleIoTLambdaFunction
+      Role: !GetAtt TrackingAndGeofencingSampleIoTLambdaFunctionRole.Arn
+      Environment:
+        Variables:
+          TrackerName: !Ref TrackerName
+      Handler: index.lambda_handler
+      Code:
+        ZipFile: |
+          from datetime import datetime
+          import json
+          import os
+
+          import boto3
+
+          # Update this to match the name of your Tracker resource
+          TRACKER_NAME = os.environ['TrackerName']
+
+          """
+          This Lambda function receives a payload from AWS IoT Core and publishes device updates to 
+          Amazon Location Service via the BatchUpdateDevicePosition API.
+
+          Parameter 'event' is the payload delivered from AWS IoT Core.
+
+          In this sample, we assume that the payload has a single top-level key 'payload' and a nested key
+          'location' with keys 'lat' and 'long'. We also assume that the name of the device is nested in
+          the payload as 'deviceid'. Finally, the timestamp of the payload is present as 'timestamp'. For
+          example:
+
+          >>> event
+          { 'payload': { 'deviceid': 'thing123', 'timestamp': 1604940328,
+            'location': { 'lat': 49.2819, 'long': -123.1187 },
+            'accuracy': {'Horizontal': 20.5 },
+            'positionProperties': {'field1':'value1','field2':'value2'} }
+          }
+
+          If your data doesn't match this schema, you can either use the AWS IoT Core rules engine to
+          format the data before delivering it to this Lambda function, or you can modify the code below to
+          match it.
+          """
+          def lambda_handler(event, context):
+            update = {
+                "DeviceId": event["payload"]["deviceid"],
+                "SampleTime": datetime.fromtimestamp(event["payload"]["timestamp"]).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "Position": [
+                  event["payload"]["location"]["long"],
+                  event["payload"]["location"]["lat"]
+                  ]
+              }
+            if "accuracy" in event["payload"]:
+                update["Accuracy"] = event["payload"]['accuracy']
+            if "positionProperties" in event["payload"]:
+                update["PositionProperties"] = event["payload"]['positionProperties']
+          
+            client = boto3.client("location")
+            response = client.batch_update_device_position(TrackerName=TRACKER_NAME, Updates=[update])
+
+            return {
+              "statusCode": 200,
+              "body": json.dumps(response)
+            }
+  TrackingAndGeofencingSampleIoTCoreRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: UpdateLocationTrackerFromMQTT
+      TopicRulePayload:
+        Description: Rule to send MQTT messages to Amazon Location Service Tracker
+        Sql: "SELECT * FROM 'location'"
+        Actions:
+          - Lambda:
+              FunctionArn: !GetAtt TrackingAndGeofencingSampleIoTLambdaFunction.Arn
+  TrackingAndGeofencingSampleIoTLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TrackingAndGeofencingSampleIoTLambdaFunction
+      Principal: iot.amazonaws.com
