@@ -97,6 +97,7 @@ This guidance supports the following regions:
 2. Navigate to the CloudFromation console and locate the `TrackingAndGeofencingSample` stack, and select the `Outputs` tab. Copy the values of `TrackingAndGeofencingSampleReadOnlyCognitoPoolId`, and `TrackingAndGeofencingSampleWriteOnlyCognitoPoolId` for the configuration file.
 3. Change the values for `READ_ONLY_IDENTITY_POOL_ID`, `WRITE_ONLY_IDENTITY_POOL_ID`, and `REGION` with the values from CloudFormation.
 4. Save the `configuration.js` file and run `npm start` to start the local web server.
+5. Navigate to `localhost:8080` in your browser, or **Preview running application** if using AWS Cloud9 and verify the map is loading.
 
 ![Map View](images/mapview.png)
 
@@ -154,7 +155,9 @@ To validate the Location update was sent from AWS IoT Core to Amazon Location Se
     "SampleTime": "2024-04-22T19:02:41+00:00"
 }
 ```
-
+### Visualizing Location Update
+In your web map, select **Run Demo** to view Location updates. You should see the two demo vehicles as well as `Vehicle-1` 
+![Tracker View](/images/trackerview.png)
 ### (Optional) Check S3 Bucket for Location Update
 To validate Location Updates are being placed in S3 for long term storage and analytics, navigate to the Amazon S3 console and locate the bucket created as part of the analytics stack. Verify that files are being created in the bucket for each location update. Alternatively, use the AWS CLI to list the files in the bucket.
 ![S3 Bucket](/images/s3bucket.png)
@@ -166,6 +169,7 @@ This guidance provides a base framework from which you can build on top for your
 - Customization of data ingestion from other sources such as Kinesis
 - Using Amazon Athena and Quicksight to perform and visualize location data stored on Amazon S3
 - Notifications configured via Amazon Simple Notification Service for Geofence enter/exit events. 
+- Configure a physical IoT Device to send location updates to the `location` MQTT Topic to visualize on the map.
 
 ## Cleanup
 
