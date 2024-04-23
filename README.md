@@ -13,6 +13,8 @@
     - [Supported Regions](#supported-regions)
 3. [Deployment Steps](#deployment-steps)
 4. [Deployment Validation](#deployment-validation)
+    - [IoT and Analytics Resources](#deployment-validation---iot-and-analytics-resources)
+    - [Visualization Resources](#deployment-validation---visualization-resources)
 5. [Running the Guidance](#running-the-guidance)
 6. [Next Steps](#next-steps)
 7. [Cleanup](#cleanup)
