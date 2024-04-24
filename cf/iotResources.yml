@@ -39,6 +39,8 @@ Resources:
       Runtime: python3.12
       FunctionName: TrackingAndGeofencingSampleIoTLambdaFunction
       Role: !GetAtt TrackingAndGeofencingSampleIoTLambdaFunctionRole.Arn
+      TracingConfig:
+        Mode: Active
       Environment:
         Variables:
           TrackerName: !Ref TrackerName

@@ -49,6 +49,8 @@ Resources:
     Properties:
       DeliveryStreamName: TrackingAndGeofencingSampleAnalyticsDeliveryStream
       DeliveryStreamType: DirectPut
+      DeliveryStreamEncryptionConfigurationInput:
+        KeyType: AWS_OWNED_CMK
       ExtendedS3DestinationConfiguration:
         BucketARN: !GetAtt TrackingAndGeofencingSampleAnalyticsBucket.Arn
         BufferingHints:
