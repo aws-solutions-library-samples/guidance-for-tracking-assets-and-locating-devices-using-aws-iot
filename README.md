@@ -30,9 +30,25 @@ The demo contained in this repository configures the resources needed to send an
 
 ### Cost
 
-You are responsible for the cost of the AWS services used while running this Guidance. As of April 2024, the cost for running this Guidance with the default settings in the US East (N. Virginia) region is approximately $94.80 per month for processing 1 million location updates.
+You are responsible for the cost of the AWS services used while running this Guidance. As of April 2024, the cost for running this Guidance with the default settings in the US East (N. Virginia) region is approximately $224.05 per month for processing and storing 1 million location updates.
 
-The majority of the cost is location writes and retrievals from Amazon Location Service. Depending on how updates are [filtered](https://aws.amazon.com/blogs/mobile/amazon-location-service-enables-position-filtering-to-reduce-position-jitter-and-cost-of-tracking/) the cost to retrieve location updats may be less.
+The majority of the cost is location writes and geofence evaluations from Amazon Location Service. Depending on how updates are [filtered](https://aws.amazon.com/blogs/mobile/amazon-location-service-enables-position-filtering-to-reduce-position-jitter-and-cost-of-tracking/) the cost to evaluate geofences and retrieve location updates may be less.
+
+### Sample Cost Table
+
+| AWS Service | Dimensions | Cost (USD) |
+| ------- | ------ | ----- |
+| Amazon Location Service | 1,000,000 Tracker Updates per month | $42.50 | 
+| Amazon Location Service | 1,000,000 Geofence Evaluations per month | $122.50 |
+| Amazon Location Service | 1,0000,000 Positions Read per month | $50.00 | 
+| Amazon Location Service | 10,000 Map Tiles Retrieved per month | $0.40 |
+| AWS IoT Core | 1,000,000 Messages Sent per month | $1.00 |
+| AWS IoT Core | 1,000,000 Rules triggered per month | $0.30 |
+| AWS Lambda | 1,000,000 requests per month | $0.21 |
+| Amazon EventBridge | 2,000,000 custom events per month | $2.00 |
+| Amazon S3 | 1,000,000 PUTs per month | $5.00 |
+| Amazon Data Firehose | 1,000,000 Direct Puts per month | $0.14 |
+
 
 ## Prerequisites
 ### Operating System
