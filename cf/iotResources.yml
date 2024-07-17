@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: A Template to provision AWS IoT Core Resources for the Amazon Location Live Device Tracking and Geofencing sample app.
+Description: A Template to provision AWS IoT Core Resources for the Amazon Location Live Device Tracking and Geofencing sample app - Guidance for Tracking Assets and Locating Devices using AWS IOT (SO9311).
 Parameters:
   TrackerName:
     Type: String
